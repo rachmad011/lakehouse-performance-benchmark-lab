@@ -1,0 +1,11 @@
+{
+  "raw_csv_path": "data/raw/fact_transactions.csv",
+  "processed_dir": "data/processed",
+  "results_dir": "results",
+  "parquet_unpartitioned_dir": "data/processed/parquet_unpartitioned",
+  "parquet_partitioned_dir": "data/processed/parquet_partitioned",
+  "orc_dir": "data/processed/orc_unpartitioned",
+  "partition_column": "event_month",
+  "default_rows": 1000000,
+  "default_seed": 42
+}

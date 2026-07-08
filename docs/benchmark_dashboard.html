@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Benchmark DuckDB Lokal</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #657085;
+      --line: #d9e0ea;
+      --blue: #2563eb;
+      --green: #059669;
+      --amber: #d97706;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+    header {
+      background: #172033;
+      color: #ffffff;
+      padding: 32px 28px;
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: 0;
+    }
+    header p {
+      max-width: 920px;
+      margin: 0;
+      color: #cbd5e1;
+    }
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 48px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .metric-card,
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .metric-card {
+      min-height: 126px;
+      padding: 16px;
+    }
+    .metric-card span,
+    .metric-card small,
+    .muted {
+      color: var(--muted);
+    }
+    .metric-card span {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .metric-card strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+    .metric-card small {
+      display: block;
+      margin-top: 8px;
+    }
+    section {
+      margin-top: 16px;
+      padding: 20px;
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+    .section-note {
+      max-width: 860px;
+      margin: -4px 0 16px;
+      color: var(--muted);
+    }
+    .chart {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      padding: 12px;
+    }
+    .chart + .table-wrap {
+      margin-top: 16px;
+    }
+    .svg-title {
+      font: 700 18px Arial, Helvetica, sans-serif;
+      fill: var(--text);
+    }
+    .svg-label {
+      font: 12px Arial, Helvetica, sans-serif;
+      fill: var(--muted);
+    }
+    .svg-value {
+      font: 12px Arial, Helvetica, sans-serif;
+      fill: var(--text);
+    }
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th {
+      text-align: left;
+      background: #eef2f7;
+      color: #263248;
+      font-weight: 700;
+    }
+    .data-table th,
+    .data-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      white-space: nowrap;
+    }
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    li + li {
+      margin-top: 8px;
+    }
+    footer {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 18px;
+      text-align: center;
+    }
+    @media (max-width: 980px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dashboard Benchmark DuckDB Lokal</h1>
+    <p>
+      Ringkasan visual untuk membandingkan CSV, Parquet, dan partitioned Parquet
+      berdasarkan latency, p50/p95, storage footprint, dan query-level winner.
+    </p>
+  </header>
+  <main>
+    <div class="grid">
+      
+        <article class="metric-card">
+          <span>Benchmark runs</span>
+          <strong>45</strong>
+          <small>3 source x 5 query</small>
+        </article>
+        
+
+        <article class="metric-card">
+          <span>Repeat per query</span>
+          <strong>3</strong>
+          <small>Dipakai untuk p50 dan p95 latency</small>
+        </article>
+        
+
+        <article class="metric-card">
+          <span>Storage terkecil</span>
+          <strong>parquet_unpartitioned</strong>
+          <small>15.98 MB</small>
+        </article>
+        
+
+        <article class="metric-card">
+          <span>Source paling sering menang</span>
+          <strong>parquet_unpartitioned</strong>
+          <small>5 query</small>
+        </article>
+        
+
+        <article class="metric-card">
+          <span>Dampak partitioning</span>
+          <strong>12.3% lebih lambat</strong>
+          <small>Partitioned Parquet pada query filter bulan.</small>
+        </article>
+        
+    </div>
+
+    <section>
+      <h2>Temuan Utama</h2>
+      <ul><li>Source dengan storage footprint paling kecil adalah `parquet_unpartitioned` dengan ukuran 15.98 MB.</li>
+<li>Dibandingkan CSV, `parquet_unpartitioned` mengurangi storage footprint sekitar 79.5% pada run ini.</li>
+<li>`parquet_unpartitioned` menjadi source tercepat berdasarkan average latency pada 5 dari 5 skenario query DuckDB lokal.</li>
+<li>Partitioned Parquet lebih lambat 12.3% dibanding unpartitioned Parquet untuk query month-filtered aggregation.</li></ul>
+    </section>
+
+    <section>
+      <h2>Storage Footprint</h2>
+      <p class="section-note">
+        Section ini membandingkan ukuran fisik setiap source data di disk. Metrik ini
+        penting untuk melihat efisiensi format dan dampak partitioning terhadap storage.
+      </p>
+      
+<svg class="chart" viewBox="0 0 920 184" role="img" aria-label="Storage Footprint per Source">
+  <title>Storage Footprint per Source</title>
+  <text x="0" y="24" class="svg-title">Storage Footprint per Source</text>
+  <text x="0" y="72" class="svg-label">parquet_unpartitioned</text><rect x="290" y="54" width="104" height="20" rx="4" fill="#2563eb"></rect><text x="404" y="69" class="svg-value">15.9831 MB</text><text x="0" y="106" class="svg-label">parquet_partitioned_event_month</text><rect x="290" y="88" width="146" height="20" rx="4" fill="#059669"></rect><text x="446" y="103" class="svg-value">22.4751 MB</text><text x="0" y="140" class="svg-label">csv</text><rect x="290" y="122" width="510" height="20" rx="4" fill="#d97706"></rect><text x="810" y="137" class="svg-value">78.1451 MB</text>
+</svg>
+
+      <div class="table-wrap"><table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>engine</th>
+      <th>source_format</th>
+      <th>source_size_mb</th>
+      <th>reduction_vs_csv_percent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_unpartitioned</td>
+      <td>15.9831</td>
+      <td>79.5500</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_partitioned_event_month</td>
+      <td>22.4751</td>
+      <td>71.2400</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>csv</td>
+      <td>78.1451</td>
+      <td>0.0000</td>
+    </tr>
+  </tbody>
+</table></div>
+    </section>
+
+    <section>
+      <h2>Source Tercepat per Query</h2>
+      <div class="table-wrap"><table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>query_name</th>
+      <th>source_format</th>
+      <th>avg_latency_seconds</th>
+      <th>p50_latency_seconds</th>
+      <th>p95_latency_seconds</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>q01_count_all</td>
+      <td>parquet_unpartitioned</td>
+      <td>0.0120</td>
+      <td>0.0023</td>
+      <td>0.0289</td>
+    </tr>
+    <tr>
+      <td>q02_filter_success_jakarta</td>
+      <td>parquet_unpartitioned</td>
+      <td>0.0597</td>
+      <td>0.0657</td>
+      <td>0.0679</td>
+    </tr>
+    <tr>
+      <td>q03_group_by_region_category</td>
+      <td>parquet_unpartitioned</td>
+      <td>0.1071</td>
+      <td>0.1009</td>
+      <td>0.1242</td>
+    </tr>
+    <tr>
+      <td>q04_monthly_aggregation</td>
+      <td>parquet_unpartitioned</td>
+      <td>0.0504</td>
+      <td>0.0485</td>
+      <td>0.0554</td>
+    </tr>
+    <tr>
+      <td>q05_channel_mix</td>
+      <td>parquet_unpartitioned</td>
+      <td>0.0728</td>
+      <td>0.0726</td>
+      <td>0.0733</td>
+    </tr>
+  </tbody>
+</table></div>
+    </section>
+
+    <section>
+      <h2>Average Latency</h2>
+      
+<svg class="chart" viewBox="0 0 920 592" role="img" aria-label="Average Latency per Query dan Source">
+  <title>Average Latency per Query dan Source</title>
+  <text x="0" y="24" class="svg-title">Average Latency per Query dan Source</text>
+  <text x="0" y="72" class="svg-label">q01_count_all | parquet_unpartitioned</text><rect x="290" y="54" width="21" height="20" rx="4" fill="#2563eb"></rect><text x="321" y="69" class="svg-value">0.0120 detik</text><text x="0" y="106" class="svg-label">q01_count_all | parquet_partitioned_event_month</text><rect x="290" y="88" width="114" height="20" rx="4" fill="#059669"></rect><text x="414" y="103" class="svg-value">0.0646 detik</text><text x="0" y="140" class="svg-label">q01_count_all | csv</text><rect x="290" y="122" width="273" height="20" rx="4" fill="#d97706"></rect><text x="573" y="137" class="svg-value">0.1543 detik</text><text x="0" y="174" class="svg-label">q02_filter_success_jakarta | parquet_unpartitioned</text><rect x="290" y="156" width="105" height="20" rx="4" fill="#7c3aed"></rect><text x="405" y="171" class="svg-value">0.0597 detik</text><text x="0" y="208" class="svg-label">q02_filter_success_jakarta | csv</text><rect x="290" y="190" width="252" height="20" rx="4" fill="#dc2626"></rect><text x="552" y="205" class="svg-value">0.1422 detik</text><text x="0" y="242" class="svg-label">q02_filter_success_jakarta | parquet_partitioned_event_month</text><rect x="290" y="224" width="388" height="20" rx="4" fill="#2563eb"></rect><text x="688" y="239" class="svg-value">0.2191 detik</text><text x="0" y="276" class="svg-label">q03_group_by_region_category | parquet_unpartitioned</text><rect x="290" y="258" width="189" height="20" rx="4" fill="#059669"></rect><text x="489" y="273" class="svg-value">0.1071 detik</text><text x="0" y="310" class="svg-label">q03_group_by_region_category | csv</text><rect x="290" y="292" width="282" height="20" rx="4" fill="#d97706"></rect><text x="582" y="307" class="svg-value">0.1593 detik</text><text x="0" y="344" class="svg-label">q03_group_by_region_category | parquet_partitioned_event_month</text><rect x="290" y="326" width="474" height="20" rx="4" fill="#7c3aed"></rect><text x="774" y="341" class="svg-value">0.2680 detik</text><text x="0" y="378" class="svg-label">q04_monthly_aggregation | parquet_unpartitioned</text><rect x="290" y="360" width="89" height="20" rx="4" fill="#dc2626"></rect><text x="389" y="375" class="svg-value">0.0504 detik</text><text x="0" y="412" class="svg-label">q04_monthly_aggregation | parquet_partitioned_event_month</text><rect x="290" y="394" width="100" height="20" rx="4" fill="#2563eb"></rect><text x="400" y="409" class="svg-value">0.0566 detik</text><text x="0" y="446" class="svg-label">q04_monthly_aggregation | csv</text><rect x="290" y="428" width="257" height="20" rx="4" fill="#059669"></rect><text x="557" y="443" class="svg-value">0.1453 detik</text><text x="0" y="480" class="svg-label">q05_channel_mix | parquet_unpartitioned</text><rect x="290" y="462" width="129" height="20" rx="4" fill="#d97706"></rect><text x="429" y="477" class="svg-value">0.0728 detik</text><text x="0" y="514" class="svg-label">q05_channel_mix | csv</text><rect x="290" y="496" width="395" height="20" rx="4" fill="#7c3aed"></rect><text x="695" y="511" class="svg-value">0.2233 detik</text><text x="0" y="548" class="svg-label">q05_channel_mix | parquet_partitioned_event_month</text><rect x="290" y="530" width="510" height="20" rx="4" fill="#dc2626"></rect><text x="810" y="545" class="svg-value">0.2878 detik</text>
+</svg>
+
+    </section>
+
+    <section>
+      <h2>Ringkasan Latency</h2>
+      <div class="table-wrap"><table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>engine</th>
+      <th>source_format</th>
+      <th>query_name</th>
+      <th>avg_latency_seconds</th>
+      <th>min_latency_seconds</th>
+      <th>max_latency_seconds</th>
+      <th>p50_latency_seconds</th>
+      <th>p95_latency_seconds</th>
+      <th>source_size_mb</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_unpartitioned</td>
+      <td>q01_count_all</td>
+      <td>0.0120</td>
+      <td>0.0018</td>
+      <td>0.0319</td>
+      <td>0.0023</td>
+      <td>0.0289</td>
+      <td>15.9831</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_partitioned_event_month</td>
+      <td>q01_count_all</td>
+      <td>0.0646</td>
+      <td>0.0476</td>
+      <td>0.0923</td>
+      <td>0.0539</td>
+      <td>0.0885</td>
+      <td>22.4751</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>csv</td>
+      <td>q01_count_all</td>
+      <td>0.1543</td>
+      <td>0.1329</td>
+      <td>0.1958</td>
+      <td>0.1342</td>
+      <td>0.1896</td>
+      <td>78.1451</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_unpartitioned</td>
+      <td>q02_filter_success_jakarta</td>
+      <td>0.0597</td>
+      <td>0.0453</td>
+      <td>0.0682</td>
+      <td>0.0657</td>
+      <td>0.0679</td>
+      <td>15.9831</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>csv</td>
+      <td>q02_filter_success_jakarta</td>
+      <td>0.1422</td>
+      <td>0.1361</td>
+      <td>0.1499</td>
+      <td>0.1407</td>
+      <td>0.1489</td>
+      <td>78.1451</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_partitioned_event_month</td>
+      <td>q02_filter_success_jakarta</td>
+      <td>0.2191</td>
+      <td>0.2177</td>
+      <td>0.2208</td>
+      <td>0.2189</td>
+      <td>0.2206</td>
+      <td>22.4751</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_unpartitioned</td>
+      <td>q03_group_by_region_category</td>
+      <td>0.1071</td>
+      <td>0.0937</td>
+      <td>0.1267</td>
+      <td>0.1009</td>
+      <td>0.1242</td>
+      <td>15.9831</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>csv</td>
+      <td>q03_group_by_region_category</td>
+      <td>0.1593</td>
+      <td>0.1530</td>
+      <td>0.1655</td>
+      <td>0.1593</td>
+      <td>0.1649</td>
+      <td>78.1451</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_partitioned_event_month</td>
+      <td>q03_group_by_region_category</td>
+      <td>0.2680</td>
+      <td>0.2465</td>
+      <td>0.3080</td>
+      <td>0.2494</td>
+      <td>0.3022</td>
+      <td>22.4751</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_unpartitioned</td>
+      <td>q04_monthly_aggregation</td>
+      <td>0.0504</td>
+      <td>0.0465</td>
+      <td>0.0561</td>
+      <td>0.0485</td>
+      <td>0.0554</td>
+      <td>15.9831</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_partitioned_event_month</td>
+      <td>q04_monthly_aggregation</td>
+      <td>0.0566</td>
+      <td>0.0485</td>
+      <td>0.0661</td>
+      <td>0.0552</td>
+      <td>0.0650</td>
+      <td>22.4751</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>csv</td>
+      <td>q04_monthly_aggregation</td>
+      <td>0.1453</td>
+      <td>0.1438</td>
+      <td>0.1475</td>
+      <td>0.1445</td>
+      <td>0.1472</td>
+      <td>78.1451</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_unpartitioned</td>
+      <td>q05_channel_mix</td>
+      <td>0.0728</td>
+      <td>0.0724</td>
+      <td>0.0734</td>
+      <td>0.0726</td>
+      <td>0.0733</td>
+      <td>15.9831</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>csv</td>
+      <td>q05_channel_mix</td>
+      <td>0.2233</td>
+      <td>0.1521</td>
+      <td>0.3377</td>
+      <td>0.1800</td>
+      <td>0.3220</td>
+      <td>78.1451</td>
+    </tr>
+    <tr>
+      <td>duckdb</td>
+      <td>parquet_partitioned_event_month</td>
+      <td>q05_channel_mix</td>
+      <td>0.2878</td>
+      <td>0.2616</td>
+      <td>0.3125</td>
+      <td>0.2892</td>
+      <td>0.3101</td>
+      <td>22.4751</td>
+    </tr>
+  </tbody>
+</table></div>
+    </section>
+
+    <section>
+      <h2>Rekomendasi</h2>
+      <ul><li>Gunakan report ini sebagai baseline lokal DuckDB sebelum masuk ke engine distributed.</li>
+<li>Bandingkan p50 dan p95 latency, bukan hanya average.</li>
+<li>Validasi partitioning dengan query yang memang memakai partition column.</li>
+<li>Jangan mencampur hasil dataset berbeda dalam satu interpretasi benchmark.</li>
+<li>Untuk tahap advance, kembangkan Spark SQL untuk batch/distributed ETL dan Trino untuk interactive SQL di atas object storage atau lakehouse catalog.</li></ul>
+    </section>
+
+    <footer>
+      Dibuat dari results/benchmark_results.csv. Markdown report:
+      docs/benchmark_report.md.
+    </footer>
+  </main>
+</body>
+</html>

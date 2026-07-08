@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+.env
+
+data/raw/*.csv
+data/processed/**
+results/*.csv
+results/*.json
+docs/images/*.png
+CODEX_PROMPTS.md
+PROPOSAL_MESSAGE.md
+AGENTS.md
